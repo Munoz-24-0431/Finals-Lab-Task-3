@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finals Lab Task 3 - Table Manipulation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --space-dark: #0a0b1a;
+            --space-light: #2d3252;
+            --star-color: #ffffff;
+            --accent-purple: #9d4edd;
+            --accent-blue: #48bfe3;
+            --text-color: #e2e2e2;
+            --link-color: #a991ff;
+            --code-bg: rgba(45, 50, 82, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--space-dark);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .cosmic-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1a1b4b 0%, #0a0b1a 100%);
+            opacity: 0.8;
+            animation: pulse-bg 15s ease infinite;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            padding: 4rem 0;
+            position: relative;
+        }
+
+        .title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        .content-section {
+            background: rgba(45, 50, 82, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(157, 78, 221, 0.2);
+            transform: translateY(50px);
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        .project-description {
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .step-section {
+            margin: 2rem 0;
+        }
+
+        .step-title {
+            color: var(--accent-purple);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .step-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--accent-purple);
+            margin-right: 1rem;
+            border-radius: 2px;
+        }
+
+        .table-info {
+            background: rgba(45, 50, 82, 0.3);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 1px solid rgba(157, 78, 221, 0.2);
+        }
+
+        .table-info h4 {
+            color: var(--accent-purple);
+            margin-bottom: 1rem;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 1.5rem;
+        }
+
+        ul li {
+            position: relative;
+            margin-bottom: 0.8rem;
+        }
+
+        ul li::before {
+            content: '★';
+            color: var(--accent-blue);
+            position: absolute;
+            left: -1.5rem;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .image-container {
+            position: relative;
+            margin: 2rem 0;
+            border-radius: 15px;
+            overflow: hidden;
+            transform: translateY(30px);
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards 0.3s;
+            cursor: pointer;
+            background: rgba(45, 50, 82, 0.3);
+            padding: 1rem;
+            border: 1px solid rgba(157, 78, 221, 0.2);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            transition: transform 0.5s ease;
+        }
+
+        .image-container:hover img {
+            transform: scale(1.02);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(157, 78, 221, 0.2), rgba(72, 191, 227, 0.2));
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-container:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background: var(--star-color);
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 11, 26, 0.95);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(157, 78, 221, 0.3);
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(45, 50, 82, 0.8);
+            border: 2px solid var(--accent-purple);
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--accent-purple);
+            transform: rotate(90deg);
+        }
+
+        .download-section {
+            text-align: center;
+            margin: 3rem 0;
+            padding: 2rem;
+            background: rgba(45, 50, 82, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(157, 78, 221, 0.2);
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 30px;
+            background: rgba(45, 50, 82, 0.8);
+            border: 2px solid var(--accent-purple);
+            color: var(--text-color);
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: var(--accent-purple);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(157, 78, 221, 0.4);
+        }
+
+        .product-list {
+            background: var(--code-bg);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(157, 78, 221, 0.2);
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse-bg {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cosmic-background"></div>
+    <div class="stars"></div>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Finals Lab Task 3</h1>
+            <p class="subtitle">Table Manipulation in MySQL</p>
+        </header>
+
+        <section class="content-section">
+            <h2>Project Overview</h2>
+            <p class="project-description">
+                This project focuses on MySQL table manipulation, including table creation, adding constraints, inserting data, and modifying table structure. We'll create and manage a products table with various fields and constraints.
+            </p>
+        </section>
+
+        <section class="content-section">
+            <h2>Step by Step Process</h2>
+            
+            <div class="step-section">
+                <h3 class="step-title">Step 1: Create Products Table</h3>
+                <div class="table-info">
+                    <h4>Table Fields:</h4>
+                    <ul>
+                        <li>id (auto-increment and primary key)</li>
+                        <li>product_name (text up to 100 characters, cannot be empty)</li>
+                        <li>price (decimal number)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-section">
+                <h3 class="step-title">Step 2: Add Price Constraint</h3>
+                <div class="table-info">
+                    <ul>
+                        <li>Add CHECK constraint to ensure price is greater than 0</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-section">
+                <h3 class="step-title">Step 3: Insert Valid Products</h3>
+                <div class="product-list">
+                    <div class="product-item">
+                        <span>Laptop</span>
+                        <span>$999.99</span>
+                    </div>
+                    <div class="product-item">
+                        <span>Smartphone</span>
+                        <span>$599.99</span>
+                    </div>
+                    <div class="product-item">
+                        <span>Tablet</span>
+                        <span>$299.99</span>
+                    </div>
+                    <div class="product-item">
+                        <span>Keyboard</span>
+                        <span>$19.99</span>
+                    </div>
+                    <div class="product-item">
+                        <span>Mouse</span>
+                        <span>$14.99</span>
+                    </div>
+                    <div class="product-item">
+                        <span>Desk Lamp</span>
+                        <span>$24.99</span>
+                    </div>
+                    <div class="product-item">
+                        <span>Speakers</span>
+                        <span>$9.99</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-section">
+                <h3 class="step-title">Step 4: Update Table Structure</h3>
+                <div class="table-info">
+                    <ul>
+                        <li>Modify product_name field to allow up to 120 characters</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>Implementation Results</h2>
+            
+            <div class="step-section">
+                <h3>Task 1: Create Table</h3>
+                <div class="image-container" data-fullscreen>
+                    <img src="https://github.com/user-attachments/assets/098392be-9435-44af-87f7-ef93e9649384" alt="Task 1 Query">
+                    <div class="image-overlay"></div>
+                </div>
+            </div>
+
+            <div class="step-section">
+                <h3>Task 2: Add Constraint</h3>
+                <div class="image-container" data-fullscreen>
+                    <img src="https://github.com/user-attachments/assets/192c5aee-9ed7-472f-ada6-eb03deaa7ad8" alt="Task 2 Query">
+                    <div class="image-overlay"></div>
+                </div>
+            </div>
+
+            <div class="step-section">
+                <h3>Task 3: Insert Products</h3>
+                <div class="image-container" data-fullscreen>
+                    <img src="https://github.com/user-attachments/assets/2147822c-c292-4b66-934e-866abcdb797a" alt="Task 3 Query">
+                    <div class="image-overlay"></div>
+                </div>
+            </div>
+
+            <div class="step-section">
+                <h3>Task 4: Modify Table</h3>
+                <div class="image-container" data-fullscreen>
+                    <img src="https://github.com/user-attachments/assets/163aaa41-baad-4fc6-a8a3-8fd4002b027e" alt="Task 4 Query">
+                    <div class="image-overlay"></div>
+                </div>
+            </div>
+
+            <div class="step-section">
+                <h3>Table Structures</h3>
+                <div class="image-container" data-fullscreen>
+                    <img src="https://github.com/user-attachments/assets/b0b4f31c-5046-4dc9-8e2e-9eb41fe5e43d" alt="Initial Table Structure">
+                    <div class="image-overlay"></div>
+                </div>
+                <div class="image-container" data-fullscreen>
+                    <img src="https://github.com/user-attachments/assets/0b0c6aab-bdb2-4c40-ae8a-f3485f5d4091" alt="Final Table Structure">
+                    <div class="image-overlay"></div>
+                </div>
+            </div>
+
+            <div class="step-section">
+                <h3>EER Diagram</h3>
+                <div class="image-container" data-fullscreen>
+                    <img src="https://github.com/user-attachments/assets/a14e75a8-e1d8-446d-b8b6-a01d8eec2209" alt="EER Diagram">
+                    <div class="image-overlay"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="download-section">
+            <h2>Download Project File</h2>
+            <a href="https://github.com/user-attachments/files/19719081/LAB.TASK.3.docx" class="download-btn" download>
+                <i class="fas fa-file-word"></i>
+                <span class="text">Download Documentation</span>
+            </a>
+        </section>
+    </div>
+
+    <!-- Modal for fullscreen images -->
+    <div class="modal">
+        <div class="modal-content">
+            <img src="" alt="">
+            <button class="modal-close">×</button>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script>
+        // Create stars
+        function createStars() {
+            const starsContainer = document.querySelector('.stars');
+            const numberOfStars = 200;
+
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = `${Math.random() * 3}px`;
+                star.style.height = star.style.width;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.setProperty('--duration', `${Math.random() * 3 + 1}s`);
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            createStars();
+        });
+
+        // Fullscreen Image Modal
+        const modal = document.querySelector('.modal');
+        const modalImg = modal.querySelector('img');
+        const closeBtn = modal.querySelector('.modal-close');
+        const images = document.querySelectorAll('.image-container[data-fullscreen]');
+
+        images.forEach(container => {
+            container.addEventListener('click', (e) => {
+                const img = container.querySelector('img');
+                modalImg.src = img.src;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            },
+            { threshold: 0.1 }
+        );
+
+        document.querySelectorAll('.content-section, .image-container').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html> 
